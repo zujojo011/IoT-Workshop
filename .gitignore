@@ -1,0 +1,19 @@
+# PlatformIO build artifacts
+.pio/
+
+# VS Code
+.vscode/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Toolchain outputs
+*.bin
+*.elf
+*.map
+*.o
+*.a
+
+# Secrets files
+include/secrets.h
