@@ -1,49 +1,240 @@
 # GreenHouse (IoT Workshop)
 
-Projekt: Automatisierung eines Gewächshauses (ESP32 + PlatformIO + MQTT) für zonenbasierte Überwachung/Steuerung.
+Automatisierung eines Gewächshauses mit ESP32, PlatformIO und MQTT.
 
-## Quickstart (VS Code + PlatformIO)
+Dieses Projekt implementiert ein IoT‑System zur Überwachung und Steuerung eines Gewächshauses mit mehreren Zonen.
+Das System kann sowohl auf echter Hardware (ESP32) als auch als Simulation auf dem PC ausgeführt werden.
+
+---
+
+# Projektüberblick
+
+Ziel ist die Entwicklung eines modularen Systems zur Überwachung und automatisierten Steuerung eines Gewächshauses.
+
+Über mehrere logische Zonen werden Sensorwerte erfasst und Aktoren gesteuert.
+
+Beispiele für Sensorwerte:
+
+- Temperatur
+- Bodenfeuchtigkeit
+- CO₂
+- Wasserstand
+- Wettervorhersage
+
+Beispiele für Aktoren:
+
+- Bewässerungspumpe
+- Fensteröffnung
+- Lüftung
+- Beschattung
+
+Die Kommunikation erfolgt über MQTT.
+
+---
+
+# Technologie Stack
+
+- ESP32
+- PlatformIO
+- Arduino Framework
+- MQTT (Mosquitto)
+- GitHub
+- GitHub Actions (CI)
+- C++
+
+Für Entwicklung ohne Hardware wird zusätzlich eine native Simulation verwendet.
+
+---
+
+# Repository Struktur
+
+.
+├── src/
+│   └── main.cpp
+│
+├── docs/
+│   ├── mqtt-topics.md
+│   └── Arbeitsjournal
+│
+├── tools/
+│   ├── mqtt_bridge.py
+│   └── requirements.txt
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
+├── platformio.ini
+└── README.md
+
+---
+
+# Quickstart (VS Code + PlatformIO)
+
 1. Repository klonen
-2. In VS Code öffnen
-3. PlatformIO: **Build** (Environment: `esp32dev`)
-4. Optional: **Monitor** für Logs (115200)
 
-## Projektziele (Kurz)
-- Zonen-Regelung für Bewässerung, Klima und CO₂
-- MQTT-Vernetzung (Topics dokumentiert unter `docs/mqtt-topics.md`)
-- Simulation ohne Hardware (später)
-- Tests + CI (später)
+git clone <repository-url>
 
-## Doku
-- Arbeitsjournal: `docs/journal/`
+2. Projekt in VS Code öffnen
 
-## Quickstart (Windows)
+3. PlatformIO Extension installieren
 
-Dieses Projekt ist ein PlatformIO-Projekt (ESP32 / Arduino). Es kann entweder
-1) auf echter Hardware gebaut werden (`esp32dev`) oder
-2) ohne Hardware als Simulation auf dem PC gebaut werden (`native`).
+4. Projekt wird automatisch erkannt
 
-### Warum brauche ich MSYS2 / MinGW?
-Für die Simulation (`pio run -e native`) kompiliert PlatformIO den Code als normales PC-Programm.
-Dafür wird ein C/C++-Compiler benötigt (`g++`). Windows bringt standardmäßig keinen `g++` mit.
+---
 
-Wir installieren deshalb **MSYS2 (UCRT64)** und darüber die **MinGW Toolchain**:
-- `g++` (C++ Compiler)
-- `make` / Build-Tools
-- Debug/Runtime-Komponenten
+# Build (ESP32)
 
-### Installation (nur nötig für Simulation `native`)
-1. MSYS2 installieren (UCRT64)
-2. In der **MSYS2 UCRT64** Konsole ausführen:
-   - `pacman -Syu`
-   - danach (Konsole ggf. neu öffnen):
-     `pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain`
-3. Optional (empfohlen): `C:\msys64\ucrt64\bin` zur Windows-Umgebungsvariable `Path` hinzufügen.
-4. Prüfen:
-   - `g++ --version`
+Firmware bauen
 
-### Builds
-
-#### ESP32 Build (Hardware)
-```powershell
 pio run -e esp32dev
+
+Firmware hochladen
+
+pio run -e esp32dev -t upload
+
+Seriellen Monitor öffnen
+
+pio device monitor
+
+Baudrate
+
+115200
+
+---
+
+# Simulation ohne Hardware
+
+Die Software kann auch ohne ESP32 getestet werden.
+
+Build
+
+pio run -e native
+
+Simulation starten
+
+pio run -e native -t exec
+
+Die Simulation erzeugt JSON Telemetrie.
+
+---
+
+# MSYS2 Installation (für Simulation)
+
+Windows benötigt einen C++ Compiler.
+
+Deshalb wird MSYS2 installiert.
+
+Download
+
+https://www.msys2.org/
+
+Toolchain installieren
+
+pacman -Syu
+
+Terminal neu öffnen
+
+pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain
+
+PATH hinzufügen
+
+C:\msys64\ucrt64\bin
+
+Installation prüfen
+
+g++ --version
+
+---
+
+# MQTT Integration
+
+Das System nutzt einen Mosquitto Broker.
+
+Standard Adresse
+
+localhost:1883
+
+---
+
+# MQTT testen
+
+Subscriber
+
+mosquitto_sub -h localhost -t "greenhouse/#" -v
+
+Publisher Beispiel
+
+mosquitto_pub -h localhost -t greenhouse/test -m "hello"
+
+---
+
+# Simulation → MQTT Bridge
+
+Python Abhängigkeiten installieren
+
+python -m pip install -r tools/requirements.txt
+
+Simulation starten und MQTT Bridge nutzen
+
+pio run -e native -t exec | python tools/mqtt_bridge.py
+
+---
+
+# Beispiel MQTT Topics
+
+greenhouse/zone1/temperature
+greenhouse/zone1/moisture
+greenhouse/zone1/co2
+greenhouse/zone1/waterLevel
+greenhouse/weather/rain_forecast_12h
+greenhouse/zone1/window
+greenhouse/zone1/pump
+
+---
+
+# Continuous Integration
+
+GitHub Actions führt automatische Builds aus.
+
+CI prüft:
+
+- ESP32 Build
+- Simulation Build
+
+Workflow Datei
+
+.github/workflows/ci.yml
+
+---
+
+# Dokumentation
+
+Weitere Dokumentation
+
+docs/
+
+Arbeitsjournal
+
+
+---
+
+# Git Workflow
+
+Branches
+
+main
+develop
+feature/*
+
+Regeln
+
+- Commit early
+- Commit often
+- Push daily
+
+---
+
+# Lizenz
+
+Educational IoT Workshop Project
